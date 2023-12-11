@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net7.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,17 +27,6 @@
     <ProjectReference Include="..\..\src\Spectre.Console.Cli\Spectre.Console.Cli.csproj" />
     <ProjectReference Include="..\..\src\Spectre.Console.Testing\Spectre.Console.Testing.csproj" />
     <ProjectReference Include="..\..\src\Spectre.Console\Spectre.Console.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Expectations\Help\Default_Without_Args_Additional.Output.verified.txt">
-      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
-      <DependentUpon>%(ParentFile).cs</DependentUpon>
-    </None>
-    <None Update="Expectations\Help\Default_Greeter.Output.verified.txt">
-      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
-      <DependentUpon>%(ParentFile).cs</DependentUpon>
-    </None>
   </ItemGroup>
 
 </Project>

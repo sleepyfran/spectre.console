@@ -57,6 +57,16 @@ public sealed class MultiSelectionPrompt<T> : IPrompt<List<T>>, IListPromptStrat
     /// </summary>
     public SelectionMode Mode { get; set; } = SelectionMode.Leaf;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the prompt can be aborted by pressing the <c>ESC</c> key.
+    /// </summary>
+    public bool AllowAbort { get; set; } = false;
+
+    /// <summary>
+    /// Gets a value indicating whether or not the prompt was aborted.
+    /// </summary>
+    public bool Aborted { get; private set; } = false;
+
     internal ListPromptTree<T> Tree { get; }
 
     /// <summary>
@@ -157,6 +167,7 @@ public sealed class MultiSelectionPrompt<T> : IPrompt<List<T>>, IListPromptStrat
             }
 
             // Submit
+            Aborted = false;
             return ListPromptInputResult.Submit;
         }
 
@@ -189,6 +200,12 @@ public sealed class MultiSelectionPrompt<T> : IPrompt<List<T>>, IListPromptStrat
 
             // Refresh the list
             return ListPromptInputResult.Refresh;
+        }
+
+        if (key.Key == ConsoleKey.Escape && AllowAbort)
+        {
+            Aborted = true;
+            return ListPromptInputResult.Abort;
         }
 
         return ListPromptInputResult.None;

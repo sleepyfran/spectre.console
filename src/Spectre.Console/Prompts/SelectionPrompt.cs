@@ -47,6 +47,11 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
     public string? SearchPlaceholderText { get; set; }
 
     /// <summary>
+    /// Gets or sets the text that will be displayed when the prompt is cancellable.
+    /// </summary>
+    public string? AbortPlaceholderText { get; set; }
+
+    /// <summary>
     /// Gets or sets the converter to get the display string for a choice. By default
     /// the corresponding <see cref="TypeConverter"/> is used.
     /// </summary>
@@ -67,6 +72,16 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
     /// Gets or sets a value indicating whether or not search is enabled.
     /// </summary>
     public bool SearchEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the prompt can be aborted by pressing the <c>ESC</c> key.
+    /// </summary>
+    public bool AllowAbort { get; set; } = false;
+
+    /// <summary>
+    /// Gets a value indicating whether or not the prompt was aborted.
+    /// </summary>
+    public bool Aborted { get; private set; } = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SelectionPrompt{T}"/> class.
@@ -99,7 +114,8 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
     {
         // Create the list prompt
         var prompt = new ListPrompt<T>(console, this);
-        var result = await prompt.Show(_tree, Mode, true, SearchEnabled, PageSize, WrapAround, cancellationToken).ConfigureAwait(false);
+        var result = await prompt.Show(_tree, Mode, true, SearchEnabled, PageSize, WrapAround, cancellationToken)
+            .ConfigureAwait(false);
 
         // Return the selected item
         return result.Items[result.Index].Data;
@@ -116,7 +132,14 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
                 return ListPromptInputResult.None;
             }
 
+            Aborted = false;
             return ListPromptInputResult.Submit;
+        }
+
+        if (key.Key == ConsoleKey.Escape && AllowAbort)
+        {
+            Aborted = true;
+            return ListPromptInputResult.Abort;
         }
 
         return ListPromptInputResult.None;
@@ -164,7 +187,8 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
         var list = new List<IRenderable>();
         var disabledStyle = DisabledStyle ?? Color.Grey;
         var highlightStyle = HighlightStyle ?? Color.Blue;
-        var searchHighlightStyle = SearchHighlightStyle ?? new Style(foreground: Color.Default, background: Color.Yellow, Decoration.Bold);
+        var searchHighlightStyle = SearchHighlightStyle ??
+                                   new Style(foreground: Color.Default, background: Color.Yellow, Decoration.Bold);
 
         if (Title != null)
         {
@@ -182,14 +206,19 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
         foreach (var item in items)
         {
             var current = item.Index == cursorIndex;
-            var prompt = item.Index == cursorIndex ? ListPromptConstants.Arrow : new string(' ', ListPromptConstants.Arrow.Length);
+            var prompt = item.Index == cursorIndex
+                ? ListPromptConstants.Arrow
+                : new string(' ', ListPromptConstants.Arrow.Length);
             var style = item.Node.IsGroup && Mode == SelectionMode.Leaf
                 ? disabledStyle
-                : current ? highlightStyle : Style.Plain;
+                : current
+                    ? highlightStyle
+                    : Style.Plain;
 
             var indent = new string(' ', item.Node.Depth * 2);
 
-            var text = (Converter ?? TypeConverterHelper.ConvertToString)?.Invoke(item.Node.Data) ?? item.Node.Data.ToString() ?? "?";
+            var text = (Converter ?? TypeConverterHelper.ConvertToString)?.Invoke(item.Node.Data) ??
+                       item.Node.Data.ToString() ?? "?";
             if (current || searchText.Length > 0)
             {
                 text = text.RemoveMarkup().EscapeMarkup();
@@ -223,10 +252,17 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
             list.Add(Text.Empty);
         }
 
+        if (AllowAbort)
+        {
+            list.Add(new Markup(AbortPlaceholderText ?? ListPromptConstants.CancelPlaceholderMarkup));
+        }
+
         if (SearchEnabled)
         {
             list.Add(new Markup(
-                searchText.Length > 0 ? searchText.EscapeMarkup() : SearchPlaceholderText ?? ListPromptConstants.SearchPlaceholderMarkup));
+                searchText.Length > 0
+                    ? searchText.EscapeMarkup()
+                    : SearchPlaceholderText ?? ListPromptConstants.SearchPlaceholderMarkup));
         }
 
         if (scrollable)

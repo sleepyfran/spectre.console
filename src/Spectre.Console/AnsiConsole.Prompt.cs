@@ -22,6 +22,36 @@ public static partial class AnsiConsole
     }
 
     /// <summary>
+    /// Displays a cancellable prompt to the user.
+    /// </summary>
+    /// <typeparam name="T">The prompt result type.</typeparam>
+    /// <param name="prompt">The prompt to display.</param>
+    /// <param name="result">The prompt input result.</param>
+    /// <returns>True if prompt processed normally; false if prompt aborted.</returns>
+    public static bool TryPrompt<T>(SelectionPrompt<T> prompt, out T result)
+        where T : notnull
+    {
+        prompt.AllowAbort = true;
+        result = prompt.Show(Console);
+        return !prompt.Aborted;
+    }
+
+    /// <summary>
+    /// Displays a cancellable prompt to the user.
+    /// </summary>
+    /// <typeparam name="T">The prompt result type.</typeparam>
+    /// <param name="prompt">The prompt to display.</param>
+    /// <param name="result">The prompt input result.</param>
+    /// <returns>True if prompt processed normally; false if prompt aborted.</returns>
+    public static bool TryPrompt<T>(MultiSelectionPrompt<T> prompt, out List<T> result)
+        where T : notnull
+    {
+        prompt.AllowAbort = true;
+        result = prompt.Show(Console);
+        return !prompt.Aborted;
+    }
+
+    /// <summary>
     /// Displays a prompt to the user.
     /// </summary>
     /// <typeparam name="T">The prompt result type.</typeparam>

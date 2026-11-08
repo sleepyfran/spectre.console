@@ -414,6 +414,45 @@ public sealed class SelectionPromptTests
     }
 
     [Fact]
+    public void Should_Show_Cancel_Text_If_CancelResult_Set()
+    {
+        // Given
+        var console = new TestConsole();
+        console.Profile.Capabilities.Interactive = true;
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        // When
+        var prompt = new SelectionPrompt<string>()
+                .Title("Select one")
+                .AddChoices("A", "B")
+                .AddCancelResult("C")
+                .CancelText("Press Esc to go back");
+        prompt.Show(console);
+
+        // Then
+        console.Output.ShouldContain("Press Esc to go back");
+    }
+
+    [Fact]
+    public void Should_Not_Show_Cancel_Text_If_CancelResult_Not_Set()
+    {
+        // Given
+        var console = new TestConsole();
+        console.Profile.Capabilities.Interactive = true;
+        console.Input.PushKey(ConsoleKey.Enter);
+
+        // When
+        var prompt = new SelectionPrompt<string>()
+                .Title("Select one")
+                .AddChoices("A", "B")
+                .CancelText("Press Esc to go back");
+        prompt.Show(console);
+
+        // Then
+        console.Output.ShouldNotContain("Press Esc to go back");
+    }
+
+    [Fact]
     public void Should_Ignore_Escape_If_CancelResult_Not_Set()
     {
         // Given

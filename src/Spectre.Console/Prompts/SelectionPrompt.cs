@@ -80,6 +80,12 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
     public Func<T>? CancelResult { get; set; }
 
     /// <summary>
+    /// Gets or sets the text that will be displayed when the prompt can be cancelled
+    /// with the 'ESC' key (that is, when <see cref="CancelResult"/> is set).
+    /// </summary>
+    public string? CancelText { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="SelectionPrompt{T}"/> class.
     /// </summary>
     /// <param name="comparer">
@@ -162,7 +168,13 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
         }
 
         var scrollable = totalItemCount > requestedPageSize;
-        if (SearchEnabled || scrollable)
+        var cancellable = CancelResult is not null;
+        if (SearchEnabled || scrollable || cancellable)
+        {
+            extra += 1;
+        }
+
+        if (cancellable)
         {
             extra += 1;
         }
@@ -233,10 +245,17 @@ public sealed class SelectionPrompt<T> : IPrompt<T>, IListPromptStrategy<T>
 
         list.Add(grid);
 
-        if (SearchEnabled || scrollable)
+        var cancellable = CancelResult is not null;
+        if (SearchEnabled || scrollable || cancellable)
         {
             // Add padding
             list.Add(Text.Empty);
+        }
+
+        if (cancellable)
+        {
+            // (Press Esc to cancel)
+            list.Add(new Markup(CancelText ?? ListPromptConstants.CancelMarkup));
         }
 
         if (SearchEnabled)

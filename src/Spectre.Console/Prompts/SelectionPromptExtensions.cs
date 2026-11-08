@@ -205,6 +205,22 @@ public static class SelectionPromptExtensions
     }
 
     /// <summary>
+    /// Sets the text that will be displayed when the prompt can be cancelled with 'ESC'.
+    /// </summary>
+    /// <typeparam name="T">The prompt result type.</typeparam>
+    /// <param name="obj">The prompt.</param>
+    /// <param name="text">The text to display.</param>
+    /// <returns>The same instance so that multiple calls can be chained.</returns>
+    public static SelectionPrompt<T> CancelText<T>(this SelectionPrompt<T> obj, string? text)
+        where T : notnull
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+
+        obj.CancelText = text;
+        return obj;
+    }
+
+    /// <summary>
     /// Sets the value that will be returned if the prompt is cancelled with 'ESC'.
     /// </summary>
     /// <typeparam name="T">The prompt result type.</typeparam>
